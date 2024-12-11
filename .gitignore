@@ -1,0 +1,8 @@
+#Dotenv
+.env
+
+#node modules
+node_modules/
+
+#OS X files
+.DS_Store
