@@ -1,16 +1,23 @@
-import { Sequelize } from "sequelize";
+import { Model, DataTypes } from 'sequelize';
+import sequelize from '../config/dbconn.js';
 
-export default (Sequelize, Datatypes) => {
-    const Task = sequelize.define('Task', {
-        title: {
-            type: Datatypes.STRING,
-            allowNull: false,
-        },
-        completed: {
-            type: Datatypes.BOOLEAN,
-            defaultValue: false,
-        },
-    });
+class Tasks extends Model {}
 
-    return Task;
-}
+Tasks.init({
+    title: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    description: {
+        type: DataTypes.TEXT,
+    },
+    completed: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+    }
+}, {
+    sequelize,
+    modelName: 'Tasks'
+});
+
+export default Tasks;
