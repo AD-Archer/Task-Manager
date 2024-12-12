@@ -16,7 +16,8 @@ router.get('/', async (req, res) => { // define a router  -The slash by itself m
 });
 
 // create a new task
-router.post('/', async (req, res) => {
+router.post('/edit:id', async (req, res) => {
+    console.log("edit")
     const task = new Task({
         title: req.body.title,
         completed: req.body.completed || false,
@@ -27,6 +28,15 @@ router.post('/', async (req, res) => {
         res.status(201).json(newTask);
     } catch (error) {
         res.status(400).json({ message: error.message });
+    }
+});
+// delete a task
+router.delete('/delete:id', async (req, res) => {
+    try {
+        await Task.destroy({ where: { id: req.body.id } });
+        res.status(204).json();
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
 });
 

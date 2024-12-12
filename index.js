@@ -20,10 +20,10 @@ const __dirname = path.dirname(__filename); // Get the directory name
 
 // Set EJS as the view engine
 app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, './views')); // Set the views directory
+app.set('views', path.join(__dirname, './views/pages')); // Set the views directory
 
 // app.use
-app.use(express.static('public')); // Serve static files
+app.use(express.static('public')); // Serve static files from public
 app.use(express.json());
 app.use('/api', taskRoutes)
 app.use('/', taskRoutes)

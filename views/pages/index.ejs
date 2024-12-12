@@ -17,8 +17,12 @@
       <% tasks.forEach(task => { %>
       <li class="list-group-item">
         <%= task.title %>: <%= task.description %>
+        <form action="/edit" method="post">
         <button class="edit-btn btn btn-primary btn-sm" data-id="<%= task.id %>">Edit</button>
+      </form>
+      <form action="/delete" method="post">
         <button class="delete-btn btn btn-danger btn-sm" data-id="<%= task.id %>">Delete</button>
+      </form>
       </li>
       <% }); %>
     </ul>
@@ -62,5 +66,19 @@
     </section>
   </section>
   <script type="application/json" src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+  <script type="application.json" src="./public/script.js"></script>
+  <script>
+
+document.getElementById("event")
+
+
+
+
+
+
+
+
+
+  </script>
 </body>
 </html>
