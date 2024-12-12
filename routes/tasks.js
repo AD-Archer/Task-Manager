@@ -6,10 +6,12 @@ const router = express.Router();
 // get all tasks
 router.get('/', async (req, res) => { // define a router  -The slash by itself means start at the root of the application
     try {
+        const tasks = await Task.findAll
+        
         await sequelize.authenticate()
         await sequelize.sync()
+        res.render('index',{tasks})
 
-        const tasks = await Task.findAll();
         res.json(tasks);
         
     } catch (error) {

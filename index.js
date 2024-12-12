@@ -5,20 +5,34 @@ import express from "express";
 import 'dotenv/config';
 import taskRoutes from "./routes/tasks.js"
 import './models/testData.js';
+import path from 'path';
+import cors from 'cors';
+import { fileURLToPath } from "url";
 
 // variables
 const app = express();
-const port = '3000';
+const port = '2555';
 const url = "localhost"
 
+// Define __dirname for ES modules
+const __filename = fileURLToPath(import.meta.url); // Get the current file path
+const __dirname = path.dirname(__filename); // Get the directory name
+
+// Set EJS as the view engine
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, './views')); // Set the views directory
 
 // app.use
+app.use(express.static('public')); // Serve static files
 app.use(express.json());
-app.use('/tasks', taskRoutes)
+app.use('/api', taskRoutes)
+// app.use('/',views)
 
 
 
-/*
+
+
+
 // app.use(express.static('public')); 
 
 //tell express where to find our template files
@@ -31,20 +45,7 @@ app.use('/tasks', taskRoutes)
 
 
 // Start our server
-const startServer = async () => {
-    try {
-        await app.listen(3000);
-        console.log(`Website running at http://${url}:${port}`);
-    } catch (error) {
-        console.log('Oops! Server start failed:', error);
-    }
-};
-
-startServer();
-
-*/
-
- app.listen(port, () => {
+ app.listen(port, () => { // port is passed here
     console.log(`Server is running on http://${url}:${port}`);
     console.log() // blank log to make console out more readable
 });
