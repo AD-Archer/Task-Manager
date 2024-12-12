@@ -26,6 +26,7 @@ app.set('views', path.join(__dirname, './views')); // Set the views directory
 app.use(express.static('public')); // Serve static files
 app.use(express.json());
 app.use('/api', taskRoutes)
+app.use('/', taskRoutes)
 // app.use('/',views)
 
 

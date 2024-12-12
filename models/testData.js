@@ -54,6 +54,17 @@ const dummyTasks = [
 ];
 
 (async () => {
-    await Promise.all(dummyTasks.map(task => Tasks.create(task)));  //this waits for a promise then this maps over the dummyTasks array calling tasks.create(task) for each task
+    await Promise.all(
+        dummyTasks.map(async (task) => {
+            // Check if the task already exists in the database
+            const existingTask = await Tasks.findOne({ where: { title: task.title } });
+            if (!existingTask) {
+                // If it doesn't exist, create a new task
+                await new Tasks(task).save();
+            } else {
+                console.log(`Task "${task.title}" already exists. Skipping...`);
+            }
+        })
+    );
     console.log('Dummy tasks inserted successfully.');
 })();
