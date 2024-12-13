@@ -8,65 +8,65 @@ router.get('/', async (req, res) => { // define a router  -The slash by itself m
     try {
         await sequelize.authenticate();
         await sequelize.sync();
-        const tasks = await Task.findAll();
-        res.render('index', { tasks });
+        const tasks = await Task.findAll(); // connects to the database and finds everything in the database
+        
+        res.render('index', { tasks }); // renders the index.ejs file with tasks data
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 });
 
-// create a new task
-router.post('/edit:id', async (req, res) => {
-    console.log("edit")
-    const task = new Task({
-        title: req.body.title,
-        completed: req.body.completed || false,
-    });
+// Add a new task
+router.post('/tasks', async (req, res) => {
+    try {
+      const { title, description } = req.body;
+      const task = await Task.create({ title, description }); // Save to database
+      res.status(201).json(task); // Send the created task as a JSON response
+    } catch (error) {
+      console.error('Error creating task:', error);
+      res.status(400).json({ message: 'Error creating task', error: error.message });
+    }
+  });
+  
 
-    try {
-        const newTask = await task.save();
-        res.status(201).json(newTask);
-    } catch (error) {
-        res.status(400).json({ message: error.message });
-    }
-});
-// delete a task
-router.delete('/delete:id', async (req, res) => {
-    try {
-        await Task.destroy({ where: { id: req.body.id } });
-        res.status(204).json();
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
+// Delete a task
+router.delete('/tasks/:id', async (req, res) => {
+  try {
+    const taskId = req.params.id; // Extract the task ID from the request parameters
+    const deletedCount = await Task.destroy({ where: { id: taskId } }); // Delete the task
 
-// get a single task by id
-router.get('/:id', async (req, res) => {
-    try {
-        const task = await Task.findByPk(req.params.id);
-        if (!task) return res.status(404).json({ message: 'Task not found' });
-        res.json(task);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+    if (deletedCount === 0) {
+      return res.status(404).json({ message: 'Task not found' }); // If no task was deleted
     }
+
+    res.status(204).send(); // Respond with no content on successful deletion
+  } catch (error) {
+    console.error('Error deleting task:', error);
+    res.status(500).json({ message: 'Error deleting task', error: error.message });
+  }
 });
 
+// Update a task
+router.put('/tasks/:id', async (req, res) => {
+  try {
+    const taskId = req.params.id; // Extract the task ID from the request parameters
+    const { title, description, status } = req.body; // Extract fields from the request body
 
-//update a task by id
-router.put('/:id', async(req, res) => {
-    try {
-        const task = await Task.findByPk(req.params.id);
-        if (!task) return res.status(404).json({ message: 'Task not found' });
-        task.title = req.body.title || task.title;
-        task.completed = req.body.completed || task.completed;
-        const updatedTask = await task.save();
-        res.json(updatedTask);
-    } catch (error) {
-        res.status(400).json({ message: error.message });
+    const [updated] = await Task.update(
+      { title, description, status },
+      { where: { id: taskId } }
+    );
+
+    if (updated) {
+      const updatedTask = await Task.findByPk(taskId); // Fetch the updated task
+      res.status(200).json(updatedTask); // Respond with the updated task
+    } else {
+      res.status(404).json({ message: 'Task not found' });
     }
+  } catch (error) {
+    console.error('Error updating task:', error);
+    res.status(400).json({ message: 'Error updating task', error: error.message });
+  }
 });
 
-
-
-
-export default router
+export default router;

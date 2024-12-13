@@ -22,26 +22,14 @@ const __dirname = path.dirname(__filename); // Get the directory name
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, './views/pages')); // Set the views directory
 
+
 // app.use
-app.use(express.static('public')); // Serve static files from public
 app.use(express.json());
+app.use(express.urlencoded({extended: true})); 
+
+app.use(express.static('public')); // Serve static files from public
 app.use('/api', taskRoutes)
 app.use('/', taskRoutes)
-// app.use('/',views)
-
-
-
-
-
-
-// app.use(express.static('public')); 
-
-//tell express where to find our template files
-// app.use('view engine', 'ejs')
-// app.use("views", "./views")
-
-//tell express where to find our public files
-// app.use(express.static(join(process.cwd(), 'public')));
 
 
 

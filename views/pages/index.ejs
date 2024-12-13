@@ -67,18 +67,130 @@
   </section>
   <script type="application/json" src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
   <script type="application.json" src="./public/script.js"></script>
+
   <script>
-
-document.getElementById("event")
-
-
-
-
-
-
-
-
-
-  </script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('add-task-form');
+      const taskList = document.getElementById('task-list');
+    
+      // Helper function to create a task item
+      const createTaskItem = (task) => {
+        const taskItem = document.createElement('li');
+        taskItem.className = 'list-group-item';
+        taskItem.innerHTML = `
+          ${task.title}: ${task.description}
+          <button class="edit-btn btn btn-primary btn-sm" data-id="${task.id}" type="button">Edit</button>
+          <button class="delete-btn btn btn-danger btn-sm" data-id="${task.id}" type="button">Delete</button>
+        `;
+        return taskItem;
+      };
+    
+      // Add a new task
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault(); // Prevent form submission
+    
+        const title = form.title.value.trim();
+        const description = form.description.value.trim();
+    
+        if (!title) {
+          alert('Title is required');
+          return;
+        }
+    
+        try {
+          const response = await fetch('/api/tasks', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ title, description }),
+          });
+    
+          if (!response.ok) {
+            throw new Error('Failed to add task');
+          }
+    
+          const newTask = await response.json();
+    
+          // Add new task to the list
+          const taskItem = createTaskItem(newTask);
+          taskList.appendChild(taskItem);
+    
+          form.reset();
+        } catch (error) {
+          console.error('Error adding task:', error);
+          alert('An error occurred while adding the task.');
+        }
+      });
+    
+      // Handle delete and edit actions
+      taskList.addEventListener('click', async (event) => {
+        event.preventDefault(); // Prevent default action for buttons
+    
+        const target = event.target;
+    
+        // Delete task
+        if (target.classList.contains('delete-btn')) {
+          const taskId = target.dataset.id;
+    
+          try {
+            const response = await fetch(`/api/tasks/${taskId}`, {
+              method: 'DELETE',
+            });
+    
+            if (!response.ok) {
+              throw new Error('Failed to delete task');
+            }
+    
+            // Remove task from the DOM
+            target.closest('li').remove();
+          } catch (error) {
+            console.error('Error deleting task:', error);
+            alert('An error occurred while deleting the task.');
+          }
+        }
+    
+        // Edit task
+        if (target.classList.contains('edit-btn')) {
+          const taskId = target.dataset.id;
+    
+          const newTitle = prompt('Enter new title:')?.trim();
+          const newDescription = prompt('Enter new description:')?.trim();
+    
+          if (!newTitle || !newDescription) {
+            alert('Both title and description are required.');
+            return;
+          }
+    
+          try {
+            const response = await fetch(`/api/tasks/${taskId}`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ title: newTitle, description: newDescription }),
+            });
+    
+            if (!response.ok) {
+              throw new Error('Failed to update task');
+            }
+    
+            const updatedTask = await response.json();
+    
+            // Update the task in the DOM
+            const taskItem = target.closest('li');
+            taskItem.innerHTML = `
+              ${updatedTask.title}: ${updatedTask.description}
+              <button class="edit-btn btn btn-primary btn-sm" data-id="${updatedTask.id}" type="button">Edit</button>
+              <button class="delete-btn btn btn-danger btn-sm" data-id="${updatedTask.id}" type="button">Delete</button>
+            `;
+          } catch (error) {
+            console.error('Error updating task:', error);
+            alert('An error occurred while updating the task.');
+          }
+        }
+      });
+    });
+    </script>
 </body>
 </html>
