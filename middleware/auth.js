@@ -14,6 +14,8 @@ export function ensuresAuthenication(req, res, next){
 }
 
 export function ensureGuest (req, res, next){
+
+
     if (!req.session.user){ // session.email or session.user or session.user.id
         // redirect logic goes here
         // where am i going /register or /dashboard

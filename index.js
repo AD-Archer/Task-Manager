@@ -21,18 +21,18 @@ const __filename = fileURLToPath(import.meta.url); // Get the current file path
 const __dirname = path.dirname(__filename); // Get the directory name
 
 
-// app.use(cookieParser())
-// app.use(session({
-//     secret: process.env.SESSION_SECRET,
-//     resave: false,
-//     saveUninitialized: false,
-//     cookie:{
-//         secure: process.env.NODE_ENV === 'production',
-//         maxAge: 24 * 60 * 600 * 1000 //24 hours
+app.use(cookieParser())
+app.use(session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie:{
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 24 * 60 * 600 * 1000 //24 hours
 
-//     }}))
+    }}))
 
-// app.use(session( { cookie: {}}))
+app.use(session( { cookie: {}}))
 
 // Set EJS as the view engine
 app.set('view engine', 'ejs');
