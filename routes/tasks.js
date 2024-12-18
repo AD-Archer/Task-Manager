@@ -1,72 +1,142 @@
 import express from 'express';
-import Task from '../models/task.js';
+import models from '../models/task.js';
 import sequelize from '../config/dbconn.js';
 
 const router = express.Router();
+const { Tasks } = models; // Destructure Tasks from models
+
 // get all tasks
-router.get('/', async (req, res) => { // define a router  -The slash by itself means start at the root of the application
+router.get('/', async (req, res) => {
     try {
-        await sequelize.authenticate();
-        await sequelize.sync();
-        const tasks = await Task.findAll(); // connects to the database and finds everything in the database
+        const tasks = await Tasks.findAll({
+            attributes: ['id', 'title', 'description', 'completed'], // Specify exactly what we want
+            order: [['createdAt', 'DESC']] // Order by newest first
+        });
         
-        res.render('index', { tasks }); // renders the index.ejs file with tasks data
+        res.render('index', { tasks }); 
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('Error fetching tasks:', error);
+        res.status(500).json({ message: 'Error fetching tasks' });
     }
 });
 
 // Add a new task
 router.post('/tasks', async (req, res) => {
     try {
-      const { title, description } = req.body;
-      const task = await Task.create({ title, description }); // Save to database
-      res.status(201).json(task); // Send the created task as a JSON response
+        const { title, description } = req.body;
+        
+        // Check if task with same title exists
+        const existingTask = await Tasks.findOne({ 
+            where: { title }
+        });
+
+        if (existingTask) {
+            return res.status(400).json({ 
+                message: 'A task with this title already exists' 
+            });
+        }
+
+        const task = await Tasks.create({ 
+            title, 
+            description,
+            completed: false 
+        });
+        
+        res.status(201).json(task);
     } catch (error) {
-      console.error('Error creating task:', error);
-      res.status(400).json({ message: 'Error creating task', error: error.message });
+        console.error('Error creating task:', error);
+        res.status(400).json({ 
+            message: 'Error creating task', 
+            error: error.message 
+        });
     }
-  });
-  
+});
 
 // Delete a task
 router.delete('/tasks/:id', async (req, res) => {
-  try {
-    const taskId = req.params.id; // Extract the task ID from the request parameters
-    const deletedCount = await Task.destroy({ where: { id: taskId } }); // Delete the task
+    try {
+        const taskId = req.params.id;
+        
+        const task = await Tasks.findByPk(taskId);
+        if (!task) {
+            return res.status(404).json({ message: 'Task not found' });
+        }
 
-    if (deletedCount === 0) {
-      return res.status(404).json({ message: 'Task not found' }); // If no task was deleted
+        await task.destroy();
+        res.status(204).send();
+    } catch (error) {
+        console.error('Error deleting task:', error);
+        res.status(500).json({ 
+            message: 'Error deleting task', 
+            error: error.message 
+        });
     }
-
-    res.status(204).send(); // Respond with no content on successful deletion
-  } catch (error) {
-    console.error('Error deleting task:', error);
-    res.status(500).json({ message: 'Error deleting task', error: error.message });
-  }
 });
 
 // Update a task
 router.put('/tasks/:id', async (req, res) => {
-  try {
-    const taskId = req.params.id; // Extract the task ID from the request parameters
-    const { title, description, status } = req.body; // Extract fields from the request body
+    try {
+        const taskId = req.params.id;
+        const { title, description, completed } = req.body;
 
-    const [updated] = await Task.update(
-      { title, description, status },
-      { where: { id: taskId } }
-    );
+        const task = await Tasks.findByPk(taskId);
+        if (!task) {
+            return res.status(404).json({ message: 'Task not found' });
+        }
 
-    if (updated) {
-      const updatedTask = await Task.findByPk(taskId); // Fetch the updated task
-      res.status(200).json(updatedTask); // Respond with the updated task
-    } else {
-      res.status(404).json({ message: 'Task not found' });
+        // Check if new title already exists (if title is being updated)
+        if (title && title !== task.title) {
+            const existingTask = await Tasks.findOne({ 
+                where: { title }
+            });
+            
+            if (existingTask) {
+                return res.status(400).json({ 
+                    message: 'A task with this title already exists' 
+                });
+            }
+        }
+
+        // Update only the fields that are provided
+        const updates = {};
+        if (title) updates.title = title;
+        if (description !== undefined) updates.description = description;
+        if (completed !== undefined) updates.completed = completed;
+
+        await task.update(updates);
+        
+        const updatedTask = await Tasks.findByPk(taskId);
+        res.status(200).json(updatedTask);
+    } catch (error) {
+        console.error('Error updating task:', error);
+        res.status(400).json({ 
+            message: 'Error updating task', 
+            error: error.message 
+        });
     }
-  } catch (error) {
-    console.error('Error updating task:', error);
-    res.status(400).json({ message: 'Error updating task', error: error.message });
-  }
+});
+
+// Route handlers for authentication pages
+router.get('/task-dashboard', async (req, res) => {
+    try {
+        const tasks = await Tasks.findAll({
+            order: [['createdAt', 'DESC']]
+        });
+        res.render('task_dashboard', { tasks });
+    } catch (error) {
+        console.error('Error loading dashboard:', error);
+        res.status(500).render('error', { 
+            message: 'Error loading dashboard' 
+        });
+    }
+});
+
+router.get('/register', (req, res) => {
+    res.render('register');
+});
+
+router.get('/login', (req, res) => {
+    res.render('login');
 });
 
 export default router;
